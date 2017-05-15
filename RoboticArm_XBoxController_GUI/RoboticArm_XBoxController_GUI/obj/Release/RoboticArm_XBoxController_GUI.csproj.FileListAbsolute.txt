@@ -1,0 +1,1 @@
+C:\Users\Lenovo\Documents\GitHub\RoboticArmControl_XboxController_GUI\RoboticArm_XBoxController_GUI\RoboticArm_XBoxController_GUI\bin\Release\RoboticArm_XBoxController_GUI.exe.config

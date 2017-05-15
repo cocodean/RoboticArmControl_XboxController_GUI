@@ -8,6 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SharpDX.XInput;
+using Comnet;
+using Comnet.Network;
+
+
+
 
 namespace RoboticArm_XBoxController_GUI
 {
@@ -18,6 +23,9 @@ namespace RoboticArm_XBoxController_GUI
     /// </summary>
     public partial class Form1 : Form
     {
+        const int UGV_ID = 5;
+        const int THIS_ID = 4;
+
         // properties
         /// <summary>
         /// The connected Xbox One controller. All properties are updated within one of its methods.
@@ -49,6 +57,8 @@ namespace RoboticArm_XBoxController_GUI
         /// </summary>
         private const int Xthreshold = 30, Ythreshold = 30;
 
+        private CommNode comms;
+
         public Form1()
         {
             InitializeComponent();
@@ -67,6 +77,12 @@ namespace RoboticArm_XBoxController_GUI
             else
                 MessageBox.Show(this,"The Xbox One controller did not connect properly.\n","Warning", MessageBoxButtons.OK,MessageBoxIcon.Warning);
 
+            //init xbees
+            comms = new Comms(THIS_ID);
+            comms.InitConnection(TransportProtocol.ZIGBEE_LINK, "COM3", "", 57600);
+            comms.AddAddress(UGV_ID, "0013A20040917A31",0);
+            comms.LinkCallback(new NGCP.ArmPosition(0,0,0,0), new CallBack(ArmPositionCallBack));
+            comms.Run();
             // set timer event to start reading and updating from the controller
             timer1.Start();
         }
@@ -171,7 +187,28 @@ namespace RoboticArm_XBoxController_GUI
         /// <param name="write_value"></param>
         private void SendArmData(int servo_id, int write_value)
         {
+            //@TODO send values
+            NGCP.ArmCommand ac= new NGCP.ArmCommand((byte)servo_id, write_value);
+            comms.Send(ac, UGV_ID);
+        }
 
+        private int ArmPositionCallBack(Header header, ABSPacket packet, CommNode node)
+        {
+            
+
+            //display arm position need to invoke becuase this is an internal thread and is unsafe
+            //only need to invoke once all will require an invoke
+            if (lblBase_pp.InvokeRequired)
+            {
+                lblBase_pp.Invoke(new MethodInvoker(() => { ArmPositionCallBack(header, packet, node); }));
+            }
+            else
+            {
+                NGCP.ArmPosition armPosition = ABSPacket.GetValue<NGCP.ArmPosition>(packet);
+                lblBase_pp.Text = armPosition.position1.ToString();
+            }
+
+            return (Int32)(CallBackCodes.CALLBACK_SUCCESS | CallBackCodes.CALLBACK_DESTROY_PACKET);
         }
     }
 }       
