@@ -57,7 +57,7 @@ namespace RoboticArm_XBoxController_GUI
         /// </summary>
         private const int Xthreshold = 30, Ythreshold = 30;
 
-        private CommNode comms;
+        private Comms comms;
 
         public Form1()
         {
@@ -82,6 +82,7 @@ namespace RoboticArm_XBoxController_GUI
             comms.InitConnection(TransportProtocol.ZIGBEE_LINK, "COM3", "", 57600);
             comms.AddAddress(UGV_ID, "0013A20040917A31",0);
             comms.LinkCallback(new NGCP.ArmPosition(0,0,0,0), new CallBack(ArmPositionCallBack));
+            comms.LoadKey("NGCP Project 2016");
             comms.Run();
             // set timer event to start reading and updating from the controller
             timer1.Start();
